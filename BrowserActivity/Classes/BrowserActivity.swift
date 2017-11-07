@@ -16,7 +16,18 @@ public class BrowserActivity: UIActivity {
         }
     }
     var canOpen: (Any) -> Bool = { item in
-        return item is URL && UIApplication.shared.canOpenURL(item as! URL)
+        switch item {
+        case is URL:
+            return UIApplication.shared.canOpenURL(item as! URL)
+        case is String:
+            if let string = item as? String, let url = URL(string: string) {
+                return UIApplication.shared.canOpenURL(url)
+            }
+        default:
+            break
+        }
+
+        return false
     }
 
     public override func canPerform(withActivityItems activityItems: [Any]) -> Bool {
@@ -24,7 +35,18 @@ public class BrowserActivity: UIActivity {
     }
 
     public override func prepare(withActivityItems activityItems: [Any]) {
-        foundURL = activityItems.first(where: canOpen) as? URL
+        let item = activityItems.first(where: canOpen)
+
+        switch item {
+        case is URL:
+            foundURL = item as? URL
+        case is String:
+            if let string = item as? String, let url = URL(string: string) {
+                foundURL = url
+            }
+        default:
+            break
+        }
     }
 
     public override func perform() {
